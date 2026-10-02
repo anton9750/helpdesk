@@ -1,0 +1,60 @@
+name: Deploy til GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Hent koden
+        uses: actions/checkout@v4
+
+      - name: Opsæt Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Installer afhængigheder
+        run: npm install
+
+      - name: Byg siden
+        run: npm run build
+        env:
+          # GitHub Pages ligger på /<repo-navn>/
+          VITE_BASE: /${{ github.event.repository.name }}/
+          # Link tilbage til hovedsiden. Antager repo'et hedder blivved.
+          # Hedder det noget andet: lav en repository variable MAIN_SITE_URL (Settings → Variables).
+          VITE_MAIN_SITE_URL: ${{ vars.MAIN_SITE_URL || format('https://{0}.github.io/blivved/', github.repository_owner) }}
+
+      # Gør at direkte links og opdatering af siden virker (React Router)
+      - name: Lav 404.html til SPA-routing
+        run: cp dist/index.html dist/404.html
+
+      - name: Upload build
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy til GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
