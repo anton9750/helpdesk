@@ -37,7 +37,7 @@ jobs:
           VITE_BASE: /${{ github.event.repository.name }}/
           # Link tilbage til hovedsiden. Antager repo'et hedder blivved.
           # Hedder det noget andet: lav en repository variable MAIN_SITE_URL (Settings → Variables).
-          VITE_MAIN_SITE_URL: ${{ vars.MAIN_SITE_URL || format('https://{0}.github.io/blivved/', github.repository_owner) }}
+        VITE_MAIN_SITE_URL: https://anton9750.github.io/omsorg/
 
       # Gør at direkte links og opdatering af siden virker (React Router)
       - name: Lav 404.html til SPA-routing
